@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+earthengine-api
+python-dotenv
+numpy
+scikit-learn
+requests

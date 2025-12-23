@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Alternate Earth Futures Simulator - Sci-Fi Dark Theme */
+
+@layer base {
+  :root {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 174 72% 56%;
+    --primary-foreground: 222 47% 5%;
+
+    --secondary: 222 47% 14%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 222 47% 12%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 174 72% 40%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
+    --ring: 174 72% 56%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --stress-low: 142 71% 45%;
+    --stress-medium: 48 96% 53%;
+    --stress-high: 25 95% 53%;
+    --stress-severe: 0 72% 51%;
+    
+    --glow-primary: 174 72% 56%;
+    --glow-accent: 199 89% 48%;
+    
+    --glass-bg: 222 47% 8% / 0.8;
+    --glass-border: 222 47% 30% / 0.3;
+
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 174 72% 56%;
+    --sidebar-primary-foreground: 222 47% 5%;
+    --sidebar-accent: 222 47% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 47% 18%;
+    --sidebar-ring: 174 72% 56%;
+  }
+
+  .dark {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 174 72% 56%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 222 47% 14%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 222 47% 12%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 174 72% 40%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
+    --ring: 174 72% 56%;
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 174 72% 56%;
+    --sidebar-primary-foreground: 222 47% 5%;
+    --sidebar-accent: 222 47% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 47% 18%;
+    --sidebar-ring: 174 72% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-xl;
+  }
+  
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--glow-primary) / 0.3),
+                0 0 40px hsl(var(--glow-primary) / 0.1);
+  }
+  
+  .glow-accent {
+    box-shadow: 0 0 20px hsl(var(--glow-accent) / 0.3),
+                0 0 40px hsl(var(--glow-accent) / 0.1);
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-400 to-primary;
+  }
+  
+  .stress-gradient {
+    background: linear-gradient(90deg, 
+      hsl(var(--stress-low)) 0%, 
+      hsl(var(--stress-medium)) 40%, 
+      hsl(var(--stress-high)) 70%, 
+      hsl(var(--stress-severe)) 100%
+    );
+  }
+  
+  .font-mono-display {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .leaflet-container {
+    @apply bg-background h-full w-full;
+  }
+  
+  .leaflet-tile-pane {
+    filter: saturate(0.8) brightness(0.85) contrast(1.1);
+  }
+  
+  .leaflet-control-zoom {
+    @apply border-0 !important;
+  }
+  
+  .leaflet-control-zoom a {
+    @apply bg-card/90 text-foreground border border-border/50 backdrop-blur-sm !important;
+  }
+  
+  .leaflet-control-zoom a:hover {
+    @apply bg-secondary text-primary !important;
+  }
+}

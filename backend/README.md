@@ -2,11 +2,11 @@
 
 **AI-Generated Simulation System for Exploring Alternate Earth Futures**
 
-> ⚠️ **Important**: This system generates **SIMULATIONS**, not predictions. Results represent possible futures under specified conditions, not forecasts of actual outcomes.
+>  **Important**: This system generates **SIMULATIONS**, not predictions. Results represent possible futures under specified conditions, not forecasts of actual outcomes.
 
 ---
 
-## 📋 Overview
+##  Overview
 
 This backend provides a production-quality API for simulating alternate Earth futures based on climate and development scenarios. It combines real satellite data from Google Earth Engine with explainable machine learning models to generate plausible future states.
 
@@ -21,7 +21,7 @@ This backend provides a production-quality API for simulating alternate Earth fu
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -80,7 +80,7 @@ Server runs at: **http://127.0.0.1:8000**
 
 ---
 
-## 🎯 Main API: POST /simulate
+##  Main API: POST /simulate
 
 ### Request Body
 
@@ -165,7 +165,7 @@ print(f"Vegetation Loss: {result['stats']['vegetation_loss_pct']}%")
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 backend/
@@ -191,7 +191,7 @@ backend/
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ### Test Production Endpoint
 
@@ -224,7 +224,7 @@ curl -X POST http://127.0.0.1:8000/simulate -H "Content-Type: application/json" 
 
 ---
 
-## 🔬 Simulation Methodology
+##  Simulation Methodology
 
 ### Data Sources (via Google Earth Engine)
 
@@ -260,7 +260,7 @@ Orchestrates the complete workflow:
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
 ### Validation Constraints
 
@@ -296,7 +296,7 @@ CACHE_TTL_HOURS = 24      # Cache lifetime
 
 ---
 
-## 🚨 Error Handling
+##  Error Handling
 
 ### Common Errors
 
@@ -317,7 +317,7 @@ This ensures **zero downtime** even without GEE access.
 
 ---
 
-## 📊 Performance
+##  Performance
 
 - **First request**: ~5-10 seconds (fetches real data)
 - **Cached requests**: <100ms
@@ -326,7 +326,7 @@ This ensures **zero downtime** even without GEE access.
 
 ---
 
-## 🎓 Academic Context
+##  Academic Context
 
 ### This is NOT a Prediction System
 
@@ -350,19 +350,6 @@ It explicitly **does not claim** to:
 
 ---
 
-## 📞 Support
 
-For questions or issues:
-- Check `/docs` for interactive API documentation
-- Review `test_api.py` for usage examples
-- Verify Earth Engine authentication: `earthengine authenticate`
-
----
-
-## 📄 License
-
-Academic/Research use only.
-
----
 
 **Built with**: FastAPI, Google Earth Engine, NumPy, scikit-learn

@@ -51,12 +51,11 @@ class SimulationRequest(BaseModel):
     @field_validator('region')
     @classmethod
     def validate_region(cls, v: str) -> str:
-        """Validate region name"""
-        allowed_regions = ['tamilnadu', 'karnataka', 'kerala', 'india', 'test', 
-                          'Tamil Nadu', 'Karnataka', 'Kerala', 'India']
-        if v not in allowed_regions:
-            raise ValueError(f"Region must be one of: {', '.join(allowed_regions)}")
-        return v
+        """Validate region name - actual validation happens in simulate.py against all 80+ regions"""
+        # Basic validation - just check it's not empty
+        if not v or not v.strip():
+            raise ValueError("Region cannot be empty")
+        return v.strip()
     
     class Config:
         json_schema_extra = {

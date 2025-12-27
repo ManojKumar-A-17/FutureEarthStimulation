@@ -12,6 +12,7 @@ Produces: Alternate future Earth state
 """
 import hashlib
 import json
+import numpy as np
 from typing import Dict, Optional
 from datetime import datetime
 
@@ -112,6 +113,40 @@ class SimulationEngine:
         )
         
         # Step 5: Assemble results
+        # Calculate area-based metrics for land transitions
+        # Estimate region area from bounding box (rough approximation)
+        region_info = baseline_data.get('region_info', {})
+        bounds = region_info.get('bounds', [0, 0, 1, 1])
+        
+        # Rough area calculation: degrees to km (1 degree ≈ 111 km at equator)
+        # This uses lat/lon degrees, accounting for Earth's curvature
+        width_km = abs(bounds[2] - bounds[0]) * 111 * abs(np.cos(np.radians((bounds[1] + bounds[3]) / 2)))
+        height_km = abs(bounds[3] - bounds[1]) * 111
+        total_area_km2 = width_km * height_km
+        
+        # Calculate degraded and urbanized areas
+        summary = land_transitions.get('summary', {})
+        baseline = land_transitions.get('baseline', {})
+        future = land_transitions.get('future', {})
+        
+        # Urbanized area: increase in built-up land (in percentage points)
+        baseline_built = baseline.get('built', 0)
+        future_built = future.get('built', 0)
+        urbanization_increase_pct = max(0, future_built - baseline_built)
+        urbanized_area_km2 = (urbanization_increase_pct / 100) * total_area_km2
+        
+        # Degraded area: loss in productive vegetation (trees, crops, grass)
+        # This is ADDITIONAL to urbanization - represents climate/stress damage
+        # We need to calculate what was lost beyond what urbanization took
+        baseline_vegetation = baseline.get('trees', 0) + baseline.get('crops', 0) + baseline.get('grass', 0)
+        future_vegetation = future.get('trees', 0) + future.get('crops', 0) + future.get('grass', 0)
+        total_veg_loss_pct = max(0, baseline_vegetation - future_vegetation)
+        
+        # Subtract urbanization from vegetation loss to get pure degradation
+        # (Urbanization takes vegetation, but that's not "degradation")
+        degradation_pct = max(0, total_veg_loss_pct - urbanization_increase_pct)
+        degraded_area_km2 = (degradation_pct / 100) * total_area_km2
+        
         results = {
             'scenario_id': scenario_id,
             'metadata': {
@@ -126,6 +161,11 @@ class SimulationEngine:
                 'baseline': land_transitions['baseline'],
                 'future': land_transitions['future'],
                 'transitions': land_transitions['transitions']
+            },
+            'land_transitions': {
+                'degraded_area_km2': round(degraded_area_km2, 2),
+                'urbanized_area_km2': round(urbanized_area_km2, 2),
+                'total_area_km2': round(total_area_km2, 2)
             },
             'summary_stats': {
                 **land_transitions['summary'],

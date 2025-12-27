@@ -6,7 +6,7 @@ import type {
   CacheStats 
 } from '@/types/simulation';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 
 class BackendClient {
   private baseUrl: string;

@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import ee
 from app.gee.data_loader import GEEDataLoader
@@ -23,6 +24,15 @@ app = FastAPI(
     title="Alternate Earth Futures Backend",
     description="AI-powered simulation system for exploring alternate Earth futures using real satellite data",
     version="1.0.0"
+)
+
+# CRITICAL: Add CORS middleware for frontend connection
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Vite default port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize components

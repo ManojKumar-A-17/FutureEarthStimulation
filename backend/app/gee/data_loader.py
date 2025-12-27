@@ -4,6 +4,7 @@ Fetches real satellite and climate data for simulation
 """
 import ee
 import numpy as np
+from datetime import datetime
 from typing import Dict, Tuple, Optional
 
 
@@ -15,8 +16,8 @@ class GEEDataLoader:
         self.datasets = {
             'land_cover': 'GOOGLE/DYNAMICWORLD/V1',
             'rainfall': 'UCSB-CHG/CHIRPS/DAILY',
-            'temperature': 'MODIS/006/MOD11A1',
-            'ndvi': 'MODIS/006/MOD13A2',
+            'temperature': 'MODIS/061/MOD11A1',  # Updated to V061
+            'ndvi': 'MODIS/061/MOD13A2',         # Updated to V061
             'nightlights': 'NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG',
             'population': 'WorldPop/GP/100m/pop'
         }
@@ -26,25 +27,28 @@ class GEEDataLoader:
         Get geometry for named region
         
         Args:
-            region_name: Name of region (e.g., 'Tamil Nadu', 'India')
+            region_name: Name or ID of region (e.g., 'tamilnadu', 'Tamil Nadu', 'India')
             
         Returns:
             Earth Engine Geometry object
         """
         # Import regions from utils
-        from app.utils.regions import REGIONS
+        from app.utils.regions import REGIONS, _normalize_region_name
         
-        if region_name not in REGIONS:
+        # Normalize the region name (tamilnadu -> Tamil Nadu)
+        normalized_name = _normalize_region_name(region_name)
+        
+        if normalized_name not in REGIONS:
             raise ValueError(f"Region '{region_name}' not found. Available: {list(REGIONS.keys())}")
         
-        bbox = REGIONS[region_name]['bbox']
+        bbox = REGIONS[normalized_name]['bbox']
         return ee.Geometry.Rectangle(bbox)
     
     def fetch_land_cover(
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 1000
+        scale: int = 5000  # Increased scale for faster processing (approx 5km)
     ) -> Dict:
         """
         Fetch land cover classification from Dynamic World
@@ -123,8 +127,8 @@ class GEEDataLoader:
         
         return {
             'year': year,
-            'annual_mean_mm': stats.get('precipitation_mean', 0),
-            'std_dev_mm': stats.get('precipitation_stdDev', 0),
+            'annual_mean_mm': float(stats.get('precipitation_mean') or 0.0),
+            'std_dev_mm': float(stats.get('precipitation_stdDev') or 0.0),
             'metadata': {
                 'scale': scale,
                 'dataset': 'CHIRPS'
@@ -135,7 +139,7 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 1000
+        scale: int = 5000  # Increased scale for faster processing (approx 5km)
     ) -> Dict:
         """
         Fetch land surface temperature from MODIS
@@ -173,8 +177,8 @@ class GEEDataLoader:
         
         return {
             'year': year,
-            'mean_celsius': stats.get('LST_Day_1km_mean', 0),
-            'std_dev_celsius': stats.get('LST_Day_1km_stdDev', 0),
+            'mean_celsius': float(stats.get('LST_Day_1km_mean') or 25.0),  # Default to 25°C if missing
+            'std_dev_celsius': float(stats.get('LST_Day_1km_stdDev') or 0.0),
             'metadata': {
                 'scale': scale,
                 'dataset': 'MODIS LST'
@@ -185,7 +189,7 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 1000
+        scale: int = 5000  # Increased scale for faster processing (approx 5km)
     ) -> Dict:
         """
         Fetch vegetation health (NDVI) from MODIS
@@ -223,8 +227,8 @@ class GEEDataLoader:
         
         return {
             'year': year,
-            'mean_ndvi': stats.get('NDVI_mean', 0),
-            'std_dev_ndvi': stats.get('NDVI_stdDev', 0),
+            'mean_ndvi': float(stats.get('NDVI_mean') or 0.5),  # Default to 0.5 if missing
+            'std_dev_ndvi': float(stats.get('NDVI_stdDev') or 0.0),
             'metadata': {
                 'scale': scale,
                 'dataset': 'MODIS NDVI'
@@ -246,13 +250,43 @@ class GEEDataLoader:
         Returns:
             Complete dataset with all layers
         """
-        region = self.get_region_geometry(region_name)
+        # Import regions to get bounding box
+        from app.utils.regions import REGIONS, _normalize_region_name
         
+        region = self.get_region_geometry(region_name)
+        normalized_name = _normalize_region_name(region_name)
+        region_data = REGIONS.get(normalized_name, {})
+        
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Fetching baseline data for {region_name}...")
+        
+        # Parallel fetch using ThreadPoolExecutor
+        # GEE API calls are thread-safe and blocking, so this works well
+        from concurrent.futures import ThreadPoolExecutor
+        
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            print(f"  - submitting parallel requests to Earth Engine...")
+            future_lc = executor.submit(self.fetch_land_cover, region, year)
+            future_rain = executor.submit(self.fetch_rainfall, region, year)
+            future_temp = executor.submit(self.fetch_temperature, region, year)
+            future_ndvi = executor.submit(self.fetch_ndvi, region, year)
+            
+            # Wait for results
+            lc_data = future_lc.result()
+            rain_data = future_rain.result()
+            temp_data = future_temp.result()
+            ndvi_data = future_ndvi.result()
+        
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Data fetch complete.")
+
         return {
             'region': region_name,
             'year': year,
-            'land_cover': self.fetch_land_cover(region, year),
-            'rainfall': self.fetch_rainfall(region, year),
-            'temperature': self.fetch_temperature(region, year),
-            'ndvi': self.fetch_ndvi(region, year)
+            'region_info': {
+                'bounds': region_data.get('bbox', [0, 0, 1, 1]),
+                'name': normalized_name
+            },
+            'land_cover': lc_data,
+            'rainfall': rain_data,
+            'temperature': temp_data,
+            'ndvi': ndvi_data
         }

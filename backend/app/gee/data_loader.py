@@ -15,8 +15,9 @@ class GEEDataLoader:
         self.datasets = {
             'land_cover': 'GOOGLE/DYNAMICWORLD/V1',
             'rainfall': 'UCSB-CHG/CHIRPS/DAILY',
-            'temperature': 'MODIS/061/MOD11A1',
-            'ndvi': 'MODIS/061/MOD13A2',
+            'temperature': 'MODIS/006/MOD11A1',
+            'ndvi': 'MODIS/006/MOD13A2',
+            'nightlights': 'NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG',
             'population': 'WorldPop/GP/100m/pop'
         }
     
@@ -46,10 +47,18 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 5000  # Aggressive optimization: 5km resolution
+        scale: int = 1000
     ) -> Dict:
         """
         Fetch land cover classification from Dynamic World
+        
+        Args:
+            region: Earth Engine geometry for the area
+            year: Year of data (2020-2024)
+            scale: Resolution in meters
+            
+        Returns:
+            Dictionary with land cover statistics
         """
         start_date = f'{year}-01-01'
         end_date = f'{year}-12-31'
@@ -59,15 +68,14 @@ class GEEDataLoader:
             .filterDate(start_date, end_date) \
             .filterBounds(region) \
             .select('label') \
-            .mode()
+            .mode()  # Most common class per pixel
         
-        # Calculate class areas with bestEffort=True for speed
+        # Calculate class areas
         class_areas = dw.reduceRegion(
             reducer=ee.Reducer.frequencyHistogram(),
             geometry=region,
             scale=scale,
-            maxPixels=1e9,
-            bestEffort=True  # CRITICAL: Allows GEE to coarsen scale if needed
+            maxPixels=1e9
         ).getInfo()
         
         return {
@@ -83,9 +91,19 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 20000  # Very coarse (20km) is fine for regional rainfall
+        scale: int = 5000
     ) -> Dict:
-        """Fetch rainfall data (CHIRPS)"""
+        """
+        Fetch rainfall data from CHIRPS
+        
+        Args:
+            region: Earth Engine geometry
+            year: Year of data
+            scale: Resolution in meters
+            
+        Returns:
+            Annual rainfall statistics
+        """
         start_date = f'{year}-01-01'
         end_date = f'{year}-12-31'
         
@@ -94,7 +112,7 @@ class GEEDataLoader:
             .filterDate(start_date, end_date) \
             .filterBounds(region) \
             .select('precipitation') \
-            .sum()
+            .sum()  # Total annual rainfall
         
         stats = rainfall.reduceRegion(
             reducer=ee.Reducer.mean().combine(
@@ -103,33 +121,47 @@ class GEEDataLoader:
             ),
             geometry=region,
             scale=scale,
-            maxPixels=1e9,
-            bestEffort=True  # Optimization
+            maxPixels=1e9
         ).getInfo()
         
         return {
             'year': year,
             'annual_mean_mm': stats.get('precipitation_mean', 0),
             'std_dev_mm': stats.get('precipitation_stdDev', 0),
-            'metadata': {'scale': scale, 'dataset': 'CHIRPS'}
+            'metadata': {
+                'scale': scale,
+                'dataset': 'CHIRPS'
+            }
         }
     
     def fetch_temperature(
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 10000  # 10km resolution
+        scale: int = 1000
     ) -> Dict:
-        """Fetch temperature (MODIS)"""
+        """
+        Fetch land surface temperature from MODIS
+        
+        Args:
+            region: Earth Engine geometry
+            year: Year of data
+            scale: Resolution in meters
+            
+        Returns:
+            Temperature statistics in Celsius
+        """
         start_date = f'{year}-01-01'
         end_date = f'{year}-12-31'
         
+        # Load MODIS LST
         lst = ee.ImageCollection(self.datasets['temperature']) \
             .filterDate(start_date, end_date) \
             .filterBounds(region) \
             .select('LST_Day_1km') \
             .mean()
         
+        # Convert from Kelvin to Celsius (MODIS LST is in Kelvin * 0.02)
         lst_celsius = lst.multiply(0.02).subtract(273.15)
         
         stats = lst_celsius.reduceRegion(
@@ -139,33 +171,47 @@ class GEEDataLoader:
             ),
             geometry=region,
             scale=scale,
-            maxPixels=1e9,
-            bestEffort=True  # Optimization
+            maxPixels=1e9
         ).getInfo()
         
         return {
             'year': year,
             'mean_celsius': stats.get('LST_Day_1km_mean', 0),
             'std_dev_celsius': stats.get('LST_Day_1km_stdDev', 0),
-            'metadata': {'scale': scale, 'dataset': 'MODIS LST'}
+            'metadata': {
+                'scale': scale,
+                'dataset': 'MODIS LST'
+            }
         }
     
     def fetch_ndvi(
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 10000  # 10km resolution
+        scale: int = 1000
     ) -> Dict:
-        """Fetch NDVI (MODIS)"""
+        """
+        Fetch vegetation health (NDVI) from MODIS
+        
+        Args:
+            region: Earth Engine geometry
+            year: Year of data
+            scale: Resolution in meters
+            
+        Returns:
+            NDVI statistics (-1 to 1, higher = healthier vegetation)
+        """
         start_date = f'{year}-01-01'
         end_date = f'{year}-12-31'
         
+        # Load MODIS NDVI
         ndvi = ee.ImageCollection(self.datasets['ndvi']) \
             .filterDate(start_date, end_date) \
             .filterBounds(region) \
             .select('NDVI') \
             .mean()
         
+        # Scale NDVI (MODIS NDVI has scale factor 0.0001)
         ndvi_scaled = ndvi.multiply(0.0001)
         
         stats = ndvi_scaled.reduceRegion(
@@ -175,15 +221,17 @@ class GEEDataLoader:
             ),
             geometry=region,
             scale=scale,
-            maxPixels=1e9,
-            bestEffort=True  # Optimization
+            maxPixels=1e9
         ).getInfo()
         
         return {
             'year': year,
             'mean_ndvi': stats.get('NDVI_mean', 0),
             'std_dev_ndvi': stats.get('NDVI_stdDev', 0),
-            'metadata': {'scale': scale, 'dataset': 'MODIS NDVI'}
+            'metadata': {
+                'scale': scale,
+                'dataset': 'MODIS NDVI'
+            }
         }
     
     def fetch_baseline_state(
@@ -201,8 +249,6 @@ class GEEDataLoader:
         Returns:
             Complete dataset with all layers
         """
-        import concurrent.futures
-
         # Import regions to get bounding box
         from app.utils.regions import REGIONS, _normalize_region_name
         
@@ -210,26 +256,6 @@ class GEEDataLoader:
         normalized_name = _normalize_region_name(region_name)
         region_data = REGIONS.get(normalized_name, {})
         
-        # Parallel fetch for speed optimization
-        import time
-        t0 = time.time()
-        print(f"Starting GEE fetch for {region_name}...")
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            future_lc = executor.submit(self.fetch_land_cover, region, year)
-            future_rain = executor.submit(self.fetch_rainfall, region, year)
-            future_temp = executor.submit(self.fetch_temperature, region, year)
-            future_ndvi = executor.submit(self.fetch_ndvi, region, year)
-            
-            # Wait for all
-            land_cover = future_lc.result()
-            rainfall = future_rain.result()
-            temperature = future_temp.result()
-            ndvi = future_ndvi.result()
-            
-        duration = time.time() - t0
-        print(f"GEE Fetch completed in {duration:.2f} seconds!")
-
         return {
             'region': region_name,
             'year': year,
@@ -237,8 +263,8 @@ class GEEDataLoader:
                 'bounds': region_data.get('bbox', [0, 0, 1, 1]),
                 'name': normalized_name
             },
-            'land_cover': land_cover,
-            'rainfall': rainfall,
-            'temperature': temperature,
-            'ndvi': ndvi
+            'land_cover': self.fetch_land_cover(region, year),
+            'rainfall': self.fetch_rainfall(region, year),
+            'temperature': self.fetch_temperature(region, year),
+            'ndvi': self.fetch_ndvi(region, year)
         }

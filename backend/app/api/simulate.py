@@ -95,9 +95,6 @@ class SimulateAPI:
         try:
             results = self.simulation_engine.run_simulation(baseline_data, scenario)
         except Exception as e:
-            import traceback
-            print(f"SIMULATION ENGINE ERROR: {str(e)}")
-            traceback.print_exc()
             raise HTTPException(
                 status_code=500,
                 detail=f"Simulation failed: {str(e)}"

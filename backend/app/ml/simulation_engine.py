@@ -256,7 +256,12 @@ class SimulationEngine:
             'urban_area_baseline_pct': round(baseline_built, 2),
             'urban_area_future_pct': round(future_built, 2),
             'urban_gain_pct': round(urban_gain, 2),
-            'crop_stress_index': climate_stress['vegetation_stress_index'],
+            'urban_gain_pct': round(urban_gain, 2),
+            'crop_stress_index': round(climate_stress['vegetation_stress_index'] * 100, 1),
+            'rainfall_stress_index': round(climate_stress['components']['rainfall_stress'] * 100, 1),
+            'temperature_stress_index': round(climate_stress['components']['temperature_stress'] * 100, 1),
+            'vegetation_stress_index': round(climate_stress['vegetation_stress_index'] * 100, 1),
+            'combined_stress_index': round(climate_stress['components']['combined_stress'] * 100, 1),
             'overall_stress_level': climate_stress['crop_stress_level']
         }
     

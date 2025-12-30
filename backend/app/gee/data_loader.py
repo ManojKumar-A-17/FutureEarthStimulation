@@ -15,9 +15,8 @@ class GEEDataLoader:
         self.datasets = {
             'land_cover': 'GOOGLE/DYNAMICWORLD/V1',
             'rainfall': 'UCSB-CHG/CHIRPS/DAILY',
-            'temperature': 'MODIS/006/MOD11A1',
-            'ndvi': 'MODIS/006/MOD13A2',
-            'nightlights': 'NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG',
+            'temperature': 'MODIS/061/MOD11A1',
+            'ndvi': 'MODIS/061/MOD13A2',
             'population': 'WorldPop/GP/100m/pop'
         }
     
@@ -47,7 +46,7 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 1000
+        scale: int = 50000  # Extreme speed (Sampler mode)
     ) -> Dict:
         """
         Fetch land cover classification from Dynamic World
@@ -75,7 +74,8 @@ class GEEDataLoader:
             reducer=ee.Reducer.frequencyHistogram(),
             geometry=region,
             scale=scale,
-            maxPixels=1e9
+            maxPixels=1e9,
+            bestEffort=True
         ).getInfo()
         
         return {
@@ -91,7 +91,7 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 5000
+        scale: int = 100000  # Extreme speed (Sampler mode)
     ) -> Dict:
         """
         Fetch rainfall data from CHIRPS
@@ -121,7 +121,8 @@ class GEEDataLoader:
             ),
             geometry=region,
             scale=scale,
-            maxPixels=1e9
+            maxPixels=1e9,
+            bestEffort=True
         ).getInfo()
         
         return {
@@ -138,7 +139,7 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 1000
+        scale: int = 50000  # Extreme speed (Sampler mode)
     ) -> Dict:
         """
         Fetch land surface temperature from MODIS
@@ -171,7 +172,8 @@ class GEEDataLoader:
             ),
             geometry=region,
             scale=scale,
-            maxPixels=1e9
+            maxPixels=1e9,
+            bestEffort=True
         ).getInfo()
         
         return {
@@ -188,7 +190,7 @@ class GEEDataLoader:
         self, 
         region: ee.Geometry, 
         year: int = 2020,
-        scale: int = 1000
+        scale: int = 50000  # Extreme speed (Sampler mode)
     ) -> Dict:
         """
         Fetch vegetation health (NDVI) from MODIS
@@ -221,7 +223,8 @@ class GEEDataLoader:
             ),
             geometry=region,
             scale=scale,
-            maxPixels=1e9
+            maxPixels=1e9,
+            bestEffort=True
         ).getInfo()
         
         return {
@@ -249,6 +252,8 @@ class GEEDataLoader:
         Returns:
             Complete dataset with all layers
         """
+        import concurrent.futures
+
         # Import regions to get bounding box
         from app.utils.regions import REGIONS, _normalize_region_name
         
@@ -256,6 +261,23 @@ class GEEDataLoader:
         normalized_name = _normalize_region_name(region_name)
         region_data = REGIONS.get(normalized_name, {})
         
+        # Sequential fetch with debug logging (Parallel caused hanging)
+        print(f"DEBUG: Fetching baseline for {region_name}...")
+        
+        print("DEBUG: Fetching Land Cover...")
+        land_cover = self.fetch_land_cover(region, year)
+        
+        print("DEBUG: Fetching Rainfall...")
+        rainfall = self.fetch_rainfall(region, year)
+        
+        print("DEBUG: Fetching Temperature...")
+        temperature = self.fetch_temperature(region, year)
+        
+        print("DEBUG: Fetching NDVI...")
+        ndvi = self.fetch_ndvi(region, year)
+        
+        print("DEBUG: All data fetched successfully.")
+
         return {
             'region': region_name,
             'year': year,
@@ -263,8 +285,8 @@ class GEEDataLoader:
                 'bounds': region_data.get('bbox', [0, 0, 1, 1]),
                 'name': normalized_name
             },
-            'land_cover': self.fetch_land_cover(region, year),
-            'rainfall': self.fetch_rainfall(region, year),
-            'temperature': self.fetch_temperature(region, year),
-            'ndvi': self.fetch_ndvi(region, year)
+            'land_cover': land_cover,
+            'rainfall': rainfall,
+            'temperature': temperature,
+            'ndvi': ndvi
         }

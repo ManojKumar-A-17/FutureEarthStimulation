@@ -85,6 +85,12 @@ class SimulationStats(BaseModel):
     trees_change_pct: float = Field(description="Tree cover change %")
     crops_change_pct: float = Field(description="Crop area change %")
     overall_stress_level: str = Field(description="Overall stress level")
+    
+    # Detailed stress breakdown
+    rainfall_stress_index: Optional[float] = Field(default=0.0, description="Rainfall stress %")
+    temperature_stress_index: Optional[float] = Field(default=0.0, description="Temperature stress %")
+    vegetation_stress_index: Optional[float] = Field(default=0.0, description="Vegetation stress %")
+    combined_stress_index: Optional[float] = Field(default=0.0, description="Combined stress %")
     cached: bool = Field(default=False, description="Whether result was from cache")
     computation_time_seconds: float = Field(default=0.0, description="Time taken to compute")
 

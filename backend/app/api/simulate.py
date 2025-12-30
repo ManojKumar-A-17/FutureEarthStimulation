@@ -117,6 +117,10 @@ class SimulateAPI:
                 trees_change_pct=results['summary_stats'].get('trees_change_pct', 0),
                 crops_change_pct=results['summary_stats'].get('crops_change_pct', 0),
                 overall_stress_level=results['summary_stats'].get('overall_stress_level', 'unknown'),
+                rainfall_stress_index=results['summary_stats'].get('rainfall_stress_index', 0.0),
+                temperature_stress_index=results['summary_stats'].get('temperature_stress_index', 0.0),
+                vegetation_stress_index=results['summary_stats'].get('vegetation_stress_index', 0.0),
+                combined_stress_index=results['summary_stats'].get('combined_stress_index', 0.0),
                 cached=False,
                 computation_time_seconds=round(computation_time, 2)
             ),

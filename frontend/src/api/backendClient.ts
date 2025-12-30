@@ -1,9 +1,9 @@
-import type { 
-  RegionsResponse, 
-  SimulationRequest, 
-  SimulationResponse, 
+import type {
+  RegionsResponse,
+  SimulationRequest,
+  SimulationResponse,
   HealthResponse,
-  CacheStats 
+  CacheStats
 } from '@/types/simulation';
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
@@ -16,11 +16,24 @@ class BackendClient {
   }
 
   async checkHealth(): Promise<HealthResponse> {
-    const response = await fetch(`${this.baseUrl}/health`);
-    if (!response.ok) {
-      throw new Error('Backend health check failed');
+    try {
+      console.log('Checking backend health at:', `${this.baseUrl}/health`);
+      const response = await fetch(`${this.baseUrl}/health`);
+      console.log('Health check status:', response.status);
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Health check failed:', response.status, text);
+        throw new Error(`Backend health check failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Health check data:', data);
+      return data;
+    } catch (error) {
+      console.error('Health check error:', error);
+      throw error;
     }
-    return response.json();
   }
 
   async getRegions(): Promise<RegionsResponse> {
@@ -37,7 +50,7 @@ class BackendClient {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
-    
+
     if (!response.ok) {
       if (response.status === 422) {
         const error = await response.json();
@@ -45,7 +58,7 @@ class BackendClient {
       }
       throw new Error(`Simulation failed: ${response.status}`);
     }
-    
+
     return response.json();
   }
 

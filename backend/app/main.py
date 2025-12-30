@@ -14,10 +14,15 @@ from app.utils.cache import get_cache
 load_dotenv()
 
 # Initialize Earth Engine
+print("Initializing Earth Engine...")
 try:
-    ee.Initialize(project=os.getenv("EARTH_ENGINE_PROJECT"))
+    project = os.getenv("EARTH_ENGINE_PROJECT")
+    print(f"Using project: {project}")
+    ee.Initialize(project=project)
+    print("Earth Engine initialized successfully.")
     EE_STATUS = "initialized"
 except Exception as e:
+    print(f"Earth Engine initialization failed: {e}")
     EE_STATUS = f"error: {e}"
 
 app = FastAPI(
@@ -25,6 +30,23 @@ app = FastAPI(
     description="AI-powered simulation system for exploring alternate Earth futures using real satellite data",
     version="1.0.0"
 )
+
+# Global Exception Handler to prevent crashes
+from fastapi import Request
+from fastapi.responses import JSONResponse
+import traceback
+
+@app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        print(f"CRITICAL ERROR handling request {request.url}: {str(e)}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"message": "Internal Server Error", "detail": str(e)}
+        )
 
 # CRITICAL: Add CORS middleware for frontend connection
 app.add_middleware(

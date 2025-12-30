@@ -122,7 +122,10 @@ class SimulationEngine:
         # This uses lat/lon degrees, accounting for Earth's curvature
         width_km = abs(bounds[2] - bounds[0]) * 111 * abs(np.cos(np.radians((bounds[1] + bounds[3]) / 2)))
         height_km = abs(bounds[3] - bounds[1]) * 111
-        total_area_km2 = width_km * height_km
+        if width_km == 0 or height_km == 0:
+            total_area_km2 = 1000.0 # Default fallback
+        else:
+            total_area_km2 = width_km * height_km
         
         # Calculate degraded and urbanized areas
         summary = land_transitions.get('summary', {})

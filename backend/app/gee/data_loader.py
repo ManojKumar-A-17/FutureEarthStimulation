@@ -262,21 +262,11 @@ class GEEDataLoader:
         region_data = REGIONS.get(normalized_name, {})
         
         # Sequential fetch with debug logging (Parallel caused hanging)
-        print(f"DEBUG: Fetching baseline for {region_name}...")
-        
-        print("DEBUG: Fetching Land Cover...")
+        # Sequential fetch (Parallel caused hanging)
         land_cover = self.fetch_land_cover(region, year)
-        
-        print("DEBUG: Fetching Rainfall...")
         rainfall = self.fetch_rainfall(region, year)
-        
-        print("DEBUG: Fetching Temperature...")
         temperature = self.fetch_temperature(region, year)
-        
-        print("DEBUG: Fetching NDVI...")
         ndvi = self.fetch_ndvi(region, year)
-        
-        print("DEBUG: All data fetched successfully.")
 
         return {
             'region': region_name,

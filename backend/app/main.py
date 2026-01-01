@@ -65,7 +65,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
 # CRITICAL: Add CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Vite default port
+    allow_origins=["*"],  # Allow all origins for production (Vercel, etc.)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

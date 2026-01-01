@@ -17,21 +17,15 @@ class BackendClient {
 
   async checkHealth(): Promise<HealthResponse> {
     try {
-      console.log('Checking backend health at:', `${this.baseUrl}/health`);
       const response = await fetch(`${this.baseUrl}/health`);
-      console.log('Health check status:', response.status);
 
       if (!response.ok) {
-        const text = await response.text();
-        console.error('Health check failed:', response.status, text);
         throw new Error(`Backend health check failed: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Health check data:', data);
       return data;
     } catch (error) {
-      console.error('Health check error:', error);
       throw error;
     }
   }

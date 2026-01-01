@@ -1,7 +1,12 @@
 import { motion } from 'framer-motion';
 import { Globe2 } from 'lucide-react';
 
-export function Header() {
+interface HeaderProps {
+  isConnected?: boolean;
+  isCheckingHealth?: boolean;
+}
+
+export function Header({ isConnected, isCheckingHealth }: HeaderProps) {
   return (
     <motion.header
       className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg"

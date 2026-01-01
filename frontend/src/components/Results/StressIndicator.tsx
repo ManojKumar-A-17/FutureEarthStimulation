@@ -7,20 +7,20 @@ interface StressIndicatorProps {
   showLabel?: boolean;
 }
 
-function getStressLevel(value: number): { 
-  level: string; 
-  color: string; 
+function getStressLevel(value: number): {
+  level: string;
+  color: string;
   bgColor: string;
 } {
-  if (value <= 0.3) return { level: 'LOW', color: 'text-stress-low', bgColor: 'bg-stress-low' };
-  if (value <= 0.6) return { level: 'MEDIUM', color: 'text-stress-medium', bgColor: 'bg-stress-medium' };
-  if (value <= 0.8) return { level: 'HIGH', color: 'text-stress-high', bgColor: 'bg-stress-high' };
+  if (value <= 30) return { level: 'LOW', color: 'text-stress-low', bgColor: 'bg-stress-low' };
+  if (value <= 60) return { level: 'MEDIUM', color: 'text-stress-medium', bgColor: 'bg-stress-medium' };
+  if (value <= 80) return { level: 'HIGH', color: 'text-stress-high', bgColor: 'bg-stress-high' };
   return { level: 'SEVERE', color: 'text-stress-severe', bgColor: 'bg-stress-severe' };
 }
 
 export function StressIndicator({ value, label, showLabel = true }: StressIndicatorProps) {
   const { level, color, bgColor } = getStressLevel(value);
-  const percentage = Math.round(value * 100);
+  const percentage = Math.round(value);
 
   return (
     <div className="space-y-2">
@@ -34,7 +34,7 @@ export function StressIndicator({ value, label, showLabel = true }: StressIndica
           </span>
         </div>
       )}
-      
+
       <div className="relative h-2 overflow-hidden rounded-full bg-secondary">
         <motion.div
           className={cn("absolute inset-y-0 left-0 rounded-full", bgColor)}

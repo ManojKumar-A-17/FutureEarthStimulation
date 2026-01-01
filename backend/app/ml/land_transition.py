@@ -80,7 +80,7 @@ class LandTransitionModel:
         transitions = {}
         
         # 1. Apply stress-based degradation
-        if vegetation_stress > 0.1:
+        if vegetation_stress > 0.01:
             stress_transitions = self._apply_stress_degradation(
                 current, vegetation_stress
             )
@@ -124,7 +124,7 @@ class LandTransitionModel:
         changes = {}
         
         # Stress factor (0 = no change, 1 = maximum degradation)
-        degradation_rate = stress * 0.3  # Max 30% of area can degrade
+        degradation_rate = stress * 0.1  # Max 10% of area can degrade (Dampened from 30%)
         
         # Trees degradation
         if 'trees' in future and future['trees'] > 0:
@@ -186,7 +186,12 @@ class LandTransitionModel:
         
         # Calculate new urban area
         current_built = future.get('built', 0)
-        new_built_area = current_built * (growth_pct / 100.0)
+        
+        # Ensure minimum base for growth (if built < 1%, assume 1% as base for expansion simulation)
+        # This allows new settlements to form in rural areas
+        base_built = max(current_built, 1.0)
+        
+        new_built_area = base_built * (growth_pct / 100.0)
         
         # Urban expansion takes from available land in priority order
         remaining_needed = new_built_area

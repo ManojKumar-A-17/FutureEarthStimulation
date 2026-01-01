@@ -44,6 +44,10 @@ export interface SimulationStats {
   trees_change_pct: number;
   crops_change_pct: number;
   overall_stress_level: 'low' | 'medium' | 'high' | 'severe';
+  rainfall_stress_index?: number;
+  temperature_stress_index?: number;
+  vegetation_stress_index?: number;
+  combined_stress_index?: number;
   cached: boolean;
   computation_time_seconds: number;
 }

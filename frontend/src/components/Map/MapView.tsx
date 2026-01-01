@@ -35,29 +35,23 @@ export function MapView({ selectedRegion }: MapViewProps) {
 
       /* ---------- BASE MAPS ---------- */
 
-      // 1️⃣ Dark map (labels included)
-      const darkMap = L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        { attribution: '&copy; CARTO' }
-      );
-
-      // 2️⃣ Street / Light map
+      // 1️⃣ Street / Light map
       const streetMap = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         { attribution: '&copy; OpenStreetMap contributors' }
       );
 
-      // 3️⃣ Satellite imagery
+      // 2️⃣ Satellite imagery
       const satelliteBase = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/' +
-          'World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        'World_Imagery/MapServer/tile/{z}/{y}/{x}',
         { attribution: '&copy; Esri' }
       );
 
       // Satellite labels overlay
       const satelliteLabels = L.tileLayer(
         'https://services.arcgisonline.com/ArcGIS/rest/services/' +
-          'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
         { attribution: '&copy; Esri', opacity: 0.9 }
       );
 
@@ -66,31 +60,15 @@ export function MapView({ selectedRegion }: MapViewProps) {
         satelliteLabels,
       ]);
 
-      // 4️⃣ Weather (rain overlay on dark map)
-      const weatherApiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-
-      const weatherOverlay = weatherApiKey
-        ? L.tileLayer(
-            `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${weatherApiKey}`,
-            { opacity: 0.6 }
-          )
-        : null;
-
-      const weatherMap: LayerGroup | null = weatherOverlay
-        ? L.layerGroup([darkMap, weatherOverlay])
-        : null;
-
       /* ---------- DEFAULT MAP ---------- */
-      darkMap.addTo(map);
+      satelliteMap.addTo(map);
 
       /* ---------- LAYER CONTROL ---------- */
       L.control
         .layers(
           {
-            'Dark Map': darkMap,
-            'Street Map': streetMap,
             'Satellite (Labeled)': satelliteMap,
-            ...(weatherMap ? { 'Weather (Rain)': weatherMap } : {}),
+            'Street Map': streetMap,
           },
           {},
           { position: 'topright' }

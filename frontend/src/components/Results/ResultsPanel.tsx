@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Building2, 
-  TreePine, 
-  Wheat, 
+import {
+  Building2,
+  TreePine,
+  Wheat,
   Activity,
   Clock,
   Database,
@@ -35,7 +35,7 @@ function getStressLevelStyle(level: string) {
 export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         className="glass-panel rounded-lg p-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -51,7 +51,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
 
   if (isLoading) {
     return (
-      <motion.div 
+      <motion.div
         className="glass-panel flex flex-col items-center justify-center rounded-lg p-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -72,7 +72,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
 
   if (!result) {
     return (
-      <motion.div 
+      <motion.div
         className="glass-panel flex flex-col items-center justify-center rounded-lg p-12 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -92,7 +92,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div 
+      <motion.div
         key={scenario_id}
         className="space-y-6"
         initial={{ opacity: 0, y: 20 }}
@@ -105,21 +105,21 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
             Simulation Results
           </h3>
           <div className="flex-1" />
-          
+
           {stats.cached && (
             <Badge variant="outline" className="gap-1 border-primary/30 bg-primary/10 text-primary">
               <Zap className="h-3 w-3" />
               Cached
             </Badge>
           )}
-          
-          <Badge 
-            variant="outline" 
+
+          <Badge
+            variant="outline"
             className={cn("uppercase", getStressLevelStyle(stats.overall_stress_level))}
           >
             {stats.overall_stress_level} Stress
           </Badge>
-          
+
           <Badge variant="outline" className="border-border/50">
             {data_source === 'real' ? '🛰️ Real Data' : '📊 Mock Data'}
           </Badge>
@@ -146,7 +146,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
           <MetricCard
             icon={<Wheat className="h-4 w-4" />}
             label="Crop Stress"
-            value={(stats.crop_stress_index * 100).toFixed(0)}
+            value={stats.crop_stress_index.toFixed(1)}
             unit="%"
             trend={stats.crop_stress_index > 0.5 ? 'negative' : 'neutral'}
             delay={0.3}
@@ -162,7 +162,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
         </div>
 
         {/* Stress Indicators */}
-        <motion.div 
+        <motion.div
           className="glass-panel rounded-lg p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -172,27 +172,27 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
             Climate Stress Breakdown
           </h4>
           <div className="grid gap-6 md:grid-cols-2">
-            <StressIndicator 
-              value={results.climate_stress.combined_stress_index} 
-              label="Combined Stress Index" 
+            <StressIndicator
+              value={stats.combined_stress_index ?? 0}
+              label="Combined Stress Index"
             />
-            <StressIndicator 
-              value={results.climate_stress.rainfall_stress} 
-              label="Rainfall Stress" 
+            <StressIndicator
+              value={stats.rainfall_stress_index ?? 0}
+              label="Rainfall Stress"
             />
-            <StressIndicator 
-              value={results.climate_stress.temperature_stress} 
-              label="Temperature Stress" 
+            <StressIndicator
+              value={stats.temperature_stress_index ?? 0}
+              label="Temperature Stress"
             />
-            <StressIndicator 
-              value={results.climate_stress.vegetation_stress} 
-              label="Vegetation Stress" 
+            <StressIndicator
+              value={stats.vegetation_stress_index ?? 0}
+              label="Vegetation Stress"
             />
           </div>
         </motion.div>
 
         {/* Land Transitions */}
-        <motion.div 
+        <motion.div
           className="glass-panel rounded-lg p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -205,7 +205,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
             <div className="rounded-md bg-secondary/30 p-4">
               <p className="font-mono text-xs text-muted-foreground">Degraded Area</p>
               <p className="mt-1 font-mono text-xl font-bold text-stress-high">
-                {results.land_transitions.degraded_area_km2.toLocaleString()} 
+                {results.land_transitions.degraded_area_km2.toLocaleString()}
                 <span className="text-sm font-normal text-muted-foreground"> km²</span>
               </p>
             </div>
@@ -220,7 +220,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
         </motion.div>
 
         {/* Metadata Footer */}
-        <motion.div 
+        <motion.div
           className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -59,10 +59,12 @@ class ClimateStressModel:
         """
         if rainfall_delta >= 0:
             # Excess rainfall (less stressful than drought)
-            stress = min(rainfall_delta / 50.0, 0.5)  # Cap at 0.5
+            # Dampened: requires +100% to reach 1.0 stress, normal +20% is just 0.2
+            stress = min(rainfall_delta / 100.0, 0.5)  # Cap at 0.5
         else:
             # Drought conditions
-            stress = min(abs(rainfall_delta) / 30.0, 1.0)  # Normalize to 0-1
+            # Dampened: requires -60% for full stress
+            stress = min(abs(rainfall_delta) / 60.0, 1.0)  # Normalize to 0-1
         
         return stress
     
@@ -81,7 +83,8 @@ class ClimateStressModel:
             return 0.0
         
         # Warming stress (normalized)
-        stress = min(temp_delta / 3.0, 1.0)  # 3°C = max stress
+        # Dampened: 5°C = max stress
+        stress = min(temp_delta / 5.0, 1.0)
         return stress
     
     def calculate_combined_stress(
@@ -111,7 +114,8 @@ class ClimateStressModel:
         
         # Adjust based on baseline NDVI (healthier vegetation more resilient)
         resilience_factor = baseline_ndvi  # Higher NDVI = more resilient
-        adjusted_stress = combined_stress * (1.0 - resilience_factor * 0.3)
+        # Increased resilience impact: healthy veg resists stress better (-50% stress for full NDVI)
+        adjusted_stress = combined_stress * (1.0 - resilience_factor * 0.5)
         
         # Vegetation impact (0 = no impact, 1 = severe impact)
         vegetation_stress_index = np.clip(adjusted_stress, 0.0, 1.0)

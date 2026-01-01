@@ -16,9 +16,23 @@ load_dotenv()
 # Initialize Earth Engine
 print("Initializing Earth Engine...")
 try:
+    import json
+    from google.oauth2.service_account import Credentials
+
     project = os.getenv("EARTH_ENGINE_PROJECT")
-    print(f"Using project: {project}")
-    ee.Initialize(project=project)
+    service_account_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    
+    if service_account_json:
+        # Production: Use Service Account from JSON string in env var
+        print("Using Service Account authentication (Production mode)")
+        creds_dict = json.loads(service_account_json)
+        creds = Credentials.from_service_account_info(creds_dict)
+        ee.Initialize(credentials=creds, project=project)
+    else:
+        # Local: Use default browser login
+        print(f"Using default authentication (Local mode). Project: {project}")
+        ee.Initialize(project=project)
+        
     print("Earth Engine initialized successfully.")
     EE_STATUS = "initialized"
 except Exception as e:

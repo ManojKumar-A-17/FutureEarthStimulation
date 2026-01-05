@@ -26,7 +26,10 @@ try:
         # Production: Use Service Account from JSON string in env var
         print("Using Service Account authentication (Production mode)")
         creds_dict = json.loads(service_account_json)
-        creds = Credentials.from_service_account_info(creds_dict)
+        creds = Credentials.from_service_account_info(
+            creds_dict,
+            scopes=['https://www.googleapis.com/auth/earthengine']
+        )
         ee.Initialize(credentials=creds, project=project)
     else:
         # Local: Use default browser login
